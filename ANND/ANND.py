@@ -15,8 +15,30 @@ class Network():
     def _initWeights(self):
         pass
 
-    def forwardProp(self, nparray):
-        pass
+    def forwardProp(self, nparray, expectedOutputs):
+        """
+        Runs forward-prop on a batch.
+        If batch size is 'k' and number if input vars are 'n'
+        the shape of nparray is (k, n, 1) where (n, 1) is
+        the column vector obtained"""
+
+        # Starting from layers[1] (layers[0] being the input layer),
+        # sequentially get the activations and store it in the
+        # corresponding layer. This allows for the next layer to
+        # fetch the activations (from the one before it)
+
+        # Call the first layer
+        self.layers[0].fp(nparray)
+
+        # Sequentially calculate the following layers
+        # NOTE: weight[i] is the weight matrix b/w
+        # layer i, i-1
+        for i in range(1, len(self.layers)):
+            self.layers[i].fp(self.weights[i] @ self.layers[i-1]._activations)
+
+        # Now, the last layer has the activations stored. Calculate
+        # the error.
+        return self._getError(expectedOutputs)
 
     def squarecost(self, lastLayerOutput, expectedOutput):
         """ Cost is sum over ( Expected - obtained )**2 """
