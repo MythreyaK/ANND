@@ -27,9 +27,12 @@ class Layer():
     class InputLayer():
         """
         Duplicates the inputs to the subsequent network"""
-        @staticmethod
-        def fp(inputVector):
+        def __init__(self, noOfNodes):
+            self._activations = np.zeros((noOfNodes, 1), dtype=np.float64)
+
+        def fp(self, inputVector):
             """Forward pass"""
+            self._activations = inputVector
             return inputVector
 
     class HiddenLayer():
@@ -38,6 +41,7 @@ class Layer():
             self.activFunc = activFunc
             self.lr = learningRate
             self.bias = np.ones((self.noOfNodes, 1), dtype=np.float64)
+            self._activations = np.zeros((self.noOfNodes, 1), dtype=np.float64)
 
         def fp(self, nparray):
             """
@@ -48,7 +52,8 @@ class Layer():
             Where W are the weights between this and the prev.
             layer, A are the activations of the prev. layer,
             B is the bias of this layer"""
-            return self.activFunc(nparray + self.bias)
+            self._activations = self.activFunc(nparray + self.bias)
+            return self._activations
 
         def derivative(self):
             pass
