@@ -43,7 +43,7 @@ class Layer():
             """
             Forward Pass:
             Returns the activations of the layer, given inputs
-            Input: nx1 numpy array (W*a) [from prev. layer]
+            Input: nx1 numpy array (W*A) [from prev. layer]
             Output: ActivFunc(W*A + B)
             Where W are the weights between this and the prev.
             layer, A are the activations of the prev. layer,
@@ -59,7 +59,7 @@ class Funcs():
     # layers
     # Each class is a function, that wraps its
     # properties: the function itself and
-    # its derivative
+    # its derivative (.d method)
     class RELU():
         @staticmethod
         def forward(nparray):
@@ -67,7 +67,6 @@ class Funcs():
 
         @staticmethod
         def d(ndarrar):
-            # Gets the derivative
             return (ndarrar > 0) * 1
 
     class Sigmoid():
@@ -77,7 +76,6 @@ class Funcs():
 
         @staticmethod
         def d(nparray):
-            # Return the derivative
             return Funcs.Sigmoid.forward(nparray) * (1 - Funcs.Sigmoid.forward(nparray))
 
     class Tanh():
