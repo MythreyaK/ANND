@@ -50,6 +50,7 @@ class Layer():
         """
         Duplicates the inputs to the subsequent network"""
         def __init__(self, noOfNodes):
+            self.noOfNodes = noOfNodes
             self._activations = np.zeros((noOfNodes, 1), dtype=np.float64)
 
         def fp(self, inputVector):
