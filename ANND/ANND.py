@@ -10,10 +10,39 @@ class Network():
             self.costFunc = self.squarecost
 
         if weights is None:
-            self.weights = self._initWeights()
+            self._initWeights()
+        else:
+            raise NotImplementedError("Loading weights from file will be added soon...")
 
     def _initWeights(self):
-        pass
+        """
+        Initialize weights from a random-normal distribution
+        and scale them down by the number of nodes in the preceding
+        layer. This reduces the chances that the combined
+        effects of their linear combination is large"""
+
+        # Iterate over the weights and init weights
+        # NOTE: weight[i] is the weight matrix b/w
+        # layer i, i-1. This notation implies weights[0] is
+        # not used
+        self.weights = [0]
+        for i in range(1, len(self.layers)):
+            arr = np.random.randn(self.layers[i].noOfNodes,
+                                  self.layers[i-1].noOfNodes) \
+                / np.sqrt(self.layers[i-1].noOfNodes)
+
+            arr = arr.astype(np.float64)
+            self.weights.append(arr)
+
+        # Convert to numpy array to ease operations
+        self.weights = np.array(self.weights)
+
+    @property.getter
+    def weightsL2Norm(self):
+        """
+        The L2 norm of the weights is used for regularization
+        to try and keep the abs(weights) in control"""
+        return np.linalg.norm(self.weights)
 
     def forwardProp(self, nparray, expectedOutputs):
         """
