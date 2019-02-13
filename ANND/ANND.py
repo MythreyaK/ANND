@@ -98,7 +98,7 @@ class Layer():
             self.noOfNodes = noOfNodes
             self.activFunc = activFunc
             self.lr = learningRate
-            self.bias = np.ones((self.noOfNodes, 1), dtype=np.float64)
+            self.bias = np.zeros((self.noOfNodes, 1), dtype=np.float64)
             self._activations = None
             self._z = None
 
