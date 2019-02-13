@@ -67,9 +67,9 @@ class Network():
         for i in range(1, len(self.layers)):
             self.layers[i].fp(self.weights[i] @ self.layers[i-1]._activations)
 
-        # Now, the last layer has the activations stored. Calculate
-        # the error.
-        return self._getError(expectedOutputs)
+        # Now, the last layer has the activations stored. Return
+        # the last layer's activations
+        return self.layers[-1]._activations
 
     def squarecost(self, lastLayerOutput, expectedOutput):
         """ Cost is sum over ( Expected - obtained )**2 """
