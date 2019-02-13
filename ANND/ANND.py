@@ -10,7 +10,7 @@ class Network():
             self.costFunc = self.squarecost
 
         if weights is None:
-            self._initWeights()
+            self.weights = self._initWeights()
         else:
             raise NotImplementedError(
                 "Loading weights from file will be added soon...")
@@ -26,24 +26,26 @@ class Network():
         # NOTE: weight[i] is the weight matrix b/w
         # layer i, i-1. This notation implies weights[0] is
         # not used
-        self.weights = [0]
+        weights = [0]
         for i in range(1, len(self.layers)):
             arr = np.random.randn(self.layers[i].noOfNodes,
                                   self.layers[i-1].noOfNodes) \
                 / np.sqrt(self.layers[i-1].noOfNodes)
 
             arr = arr.astype(np.float64)
-            self.weights.append(arr)
+            weights.append(arr)
 
-        # Convert to numpy array to ease operations
-        self.weights = np.array(self.weights)
+        return weights
 
     @property.getter
     def weightsL2Norm(self):
         """
         The L2 norm of the weights is used for regularization
         to try and keep the abs(weights) in control"""
-        return np.linalg.norm(self.weights)
+        ret = 0
+        for i in range(self.weights):
+            ret += np.sum(i**2)
+        return ret**0.5
 
     def forwardProp(self, nparray, expectedOutputs):
         """
@@ -71,6 +73,13 @@ class Network():
         # the last layer's activations
         return self.layers[-1]._activations
 
+    def backProp(self, errors):
+        """
+        Use the errors to calculate the gradient of the
+        cost w.r.t the weights, biases and update them
+        in an effort to make the Network 'learn'"""
+        pass
+
     def squarecost(self, lastLayerOutput, expectedOutput):
         """ Cost is sum over ( Expected - obtained )**2 """
         return np.sum(np.power(expectedOutput - lastLayerOutput, 2))
@@ -94,10 +103,10 @@ class Layer():
             return inputVector
 
     class HiddenLayer():
-        def __init__(self, noOfNodes, activFunc, bias=True, learningRate=0.01):
+        def __init__(self, noOfNodes, activFunc):
             self.noOfNodes = noOfNodes
             self.activFunc = activFunc
-            self.lr = learningRate
+            self.lr = None
             self.bias = np.zeros((self.noOfNodes, 1), dtype=np.float64)
             self._activations = None
             self._z = None
