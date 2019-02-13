@@ -12,7 +12,8 @@ class Network():
         if weights is None:
             self._initWeights()
         else:
-            raise NotImplementedError("Loading weights from file will be added soon...")
+            raise NotImplementedError(
+                "Loading weights from file will be added soon...")
 
     def _initWeights(self):
         """
@@ -61,7 +62,8 @@ class Network():
 
         # Sequentially calculate the following layers
         # NOTE: weight[i] is the weight matrix b/w
-        # layer i, i-1
+        # layer i, i-1. This notation implies weights[0] is
+        # not used
         for i in range(1, len(self.layers)):
             self.layers[i].fp(self.weights[i] @ self.layers[i-1]._activations)
 
@@ -78,6 +80,7 @@ class Layer():
     class InputLayer():
         """
         Duplicates the inputs to the subsequent network"""
+
         def __init__(self, noOfNodes):
             self.noOfNodes = noOfNodes
             self._activations = None
