@@ -51,7 +51,9 @@ class Layer():
         Duplicates the inputs to the subsequent network"""
         def __init__(self, noOfNodes):
             self.noOfNodes = noOfNodes
-            self._activations = np.zeros((noOfNodes, 1), dtype=np.float64)
+            self._activations = None
+            # Layer._z = W.A + B
+            self._z = None
 
         def fp(self, inputVector):
             """Forward pass"""
@@ -64,7 +66,8 @@ class Layer():
             self.activFunc = activFunc
             self.lr = learningRate
             self.bias = np.ones((self.noOfNodes, 1), dtype=np.float64)
-            self._activations = np.zeros((self.noOfNodes, 1), dtype=np.float64)
+            self._activations = None
+            self._z = None
 
         def fp(self, nparray):
             """
