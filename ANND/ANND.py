@@ -90,6 +90,7 @@ class Layer():
         def fp(self, inputVector):
             """Forward pass"""
             self._activations = inputVector
+            self._z = inputVector
             return inputVector
 
     class HiddenLayer():
@@ -110,7 +111,8 @@ class Layer():
             Where W are the weights between this and the prev.
             layer, A are the activations of the prev. layer,
             B is the bias of this layer"""
-            self._activations = self.activFunc(nparray + self.bias)
+            self._z = nparray + self.bias
+            self._activations = self.activFunc(self._z)
             return self._activations
 
         def derivative(self):
