@@ -2,18 +2,38 @@ import numpy as np
 
 
 class Network():
-    def __init__(self, layers, batch=64, learningRate=0.01, costFunc=None, dataSplit=[75, 15, 10], thresh=0.01, weights=None):
-        self.layers = layers
+    def __init__(self, inAndOut, batch=64, learningRate=0.01, costFunc=None, dataSplit=[75, 15, 10], thresh=0.01):
         self.learningRate = learningRate
-
+        self.batchSize = batch
+        self.weights = []
+        self.layers = []
+        self.inAndOut = inAndOut
         if costFunc is None:
             self.costFunc = self.squarecost
 
-        if weights is None:
-            self.weights = self._initWeights()
-        else:
-            raise NotImplementedError(
-                "Loading weights from file will be added soon...")
+    def Sequential(self, *layers):
+        """
+        Takes a series of Layers (of type 'Layer')
+        to create those Hidden layers. Input layer is
+        added automatically. Output is the last layer."""
+
+        # Add the input layer
+        self.layers.append(Layer._InputLayer(self.inAndOut[0]))
+
+        # Iterate over the *layers and add them
+        # to self.layers
+        for i in range(len(layers)):
+            layers[i].lr = self.learningRate
+            self.layers.append(layers)
+
+        # Sanity check of the shape of last layer
+        if self.layers[-1].noOfNodes != self.inAndOut[1]:
+            raise ValueError("Output layer's nodes defined (" + str(self.inAndOut[1]) +
+                             ") vs given (" + self.layers[-1].noOfNodes + ") mismatch")
+
+        # Now that the layers are in place, initialize
+        # the weights
+        self.weights = self._initWeights()
 
     def _initWeights(self):
         """
