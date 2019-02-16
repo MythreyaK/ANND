@@ -86,7 +86,7 @@ class Network():
 
 
 class Layer():
-    class InputLayer():
+    class _InputLayer():
         """
         Duplicates the inputs to the subsequent network"""
 
