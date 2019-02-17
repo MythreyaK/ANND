@@ -80,14 +80,14 @@ class Network():
         # fetch the activations (from the one before it)
 
         # Call the first layer
-        self.layers[0].fp(nparray)
+        self.layers[0](nparray)
 
         # Sequentially calculate the following layers
         # NOTE: weight[i] is the weight matrix b/w
         # layer i, i-1. This notation implies weights[0] is
         # not used
         for i in range(1, len(self.layers)):
-            self.layers[i].fp(self.weights[i] @ self.layers[i-1]._activations)
+            self.layers[i](self.weights[i] @ self.layers[i-1]._activations)
 
         # Now, the last layer has the activations stored. Return
         # the last layer's activations
@@ -116,7 +116,7 @@ class Layer():
             # Layer._z = W.A + B
             self._z = None
 
-        def fp(self, inputVector):
+        def __call__(self, inputVector):
             """Forward pass"""
             self._activations = inputVector
             self._z = inputVector
@@ -131,7 +131,7 @@ class Layer():
             self._activations = None
             self._z = None
 
-        def fp(self, nparray):
+        def __call__(self, nparray):
             """
             Forward Pass:
             Returns the activations of the layer, given inputs
@@ -156,7 +156,7 @@ class Funcs():
     # its derivative (.d method)
     class RELU():
         @staticmethod
-        def forward(nparray):
+        def __call__(nparray):
             return (nparray > 0) * nparray
 
         @staticmethod
@@ -165,16 +165,16 @@ class Funcs():
 
     class Sigmoid():
         @staticmethod
-        def forward(nparray):
+        def __call__(nparray):
             return np.exp(nparray)/(1 + np.exp(nparray))
 
         @staticmethod
         def d(nparray):
-            return Funcs.Sigmoid.forward(nparray) * (1 - Funcs.Sigmoid.forward(nparray))
+            return Funcs.Sigmoid(nparray) * (1 - Funcs.Sigmoid(nparray))
 
     class Tanh():
         @staticmethod
-        def forward(nparray):
+        def __call__(nparray):
             return np.tanh(nparray)
 
         @staticmethod
