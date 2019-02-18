@@ -24,7 +24,7 @@ class Network():
         # to self.layers
         for i in range(len(layers)):
             layers[i].lr = self.learningRate
-            self.layers.append(layers)
+            self.layers.append(layers[i])
 
         # Sanity check of the shape of last layer
         if self.layers[-1].noOfNodes != self.inAndOut[1]:
@@ -57,7 +57,7 @@ class Network():
 
         return weights
 
-    @property.getter
+    @property
     def weightsL2Norm(self):
         """
         The L2 norm of the weights is used for regularization
