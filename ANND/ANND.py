@@ -98,7 +98,28 @@ class Network():
         Use the errors to calculate the gradient of the
         cost w.r.t the weights, biases and update them
         in an effort to make the Network 'learn'"""
-        pass
+
+        # dw, db list so that all are updated at once. This is
+        # to also facilitate regularization (which uses the old
+        # weights, before updates)
+        dws, dbs = [0], [0]
+        # Last layer, special case, dC/dA is 2*(act - pred)
+        dca = errors
+
+        for i in range(len(self.weights) - 1, 0, -1):
+            dcaz = self.layers[i].__fderiv() * dca
+            dws.insert(0, self.layers[i]._activations.T * dcaz)
+            dbs.insert(0, dcaz)
+            dcaz *= self.weights[i]
+
+        # Call the function that updates the weights and biases
+        # based on chosen update method
+        self.__updateParameters(dws, dbs)
+
+    def __updateParameters(self, delWs, delBs):
+        for i in range(len(self.weights) - 1, 0, -1):
+            self.weights[i] -= self.layers[i].lr * delWs[i]
+            self.layers[i].bias -= self.layers[i].lr * delBs[i]
 
     def squarecost(self, lastLayerOutput, expectedOutput):
         """ Cost is sum over ( Expected - obtained )**2 """
