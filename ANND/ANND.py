@@ -67,7 +67,7 @@ class Network():
             ret += np.sum(i**2)
         return ret**0.5
 
-    def forwardProp(self, nparray, expectedOutputs):
+    def forwardProp(self, nparray):
         """
         Runs forward-prop on a batch.
         If batch size is 'k' and number if input vars are 'n'
