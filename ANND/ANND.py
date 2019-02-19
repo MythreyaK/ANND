@@ -128,6 +128,133 @@ class Network():
             self.weights[i] -= self.layers[i].lr * delWs[i]
             self.layers[i].bias -= self.layers[i].lr * delBs[i]
 
+    def Train(self, noOfEpochs):
+        """
+        Run the training, validation loop with the
+        parameters defined"""
+
+        # Create train-test-validation data split
+        self.__splitData()
+
+        trainErrors = []
+        valErrors = []
+
+        for epoch in range(noOfEpochs):
+            # Create a list of indices from 0 - len(trainData)
+            # and create batchs of size self.batchSize and pass
+            # it to the forward pass.
+
+            # Pass the batches, get the error, backProp.
+            # Rinse and repeat. Oh and store the errors for
+            # plotting purposes
+            for batchNum, batch, expectedVector in self.__getBatch():
+                self.forwardProp(batch)
+                # Last layer's activations are stored by
+                # the forward prop function, so no need to
+                # pass as parameter
+                errors = self.__getErrors(expectedVector)
+                trainErrors.append(np.sum(errors**2))
+                self.backProp(errors)
+
+            # Run validation
+            self.forwardProp(self.__customReshape(
+                self.__valSet[:, :-1])
+            )
+            valErrors.append(np.sum(
+                self.__getErrors(
+                    self.__getClassifier(self.__valSet[:, -1])
+                )**2)
+            )
+            self.__updatePlot(trainErrors, valErrors)
+
+    def __splitData(self):
+        """
+        Splits data in the ratio specified by the user."""
+
+        # Generate a list of random indices that are used to
+        # pick data-points
+
+        randInx = np.random.permutation(len(self.__dataSet))
+        trainFr = np.ceil(self.__splitFr[0] * len(randInx))
+        valFr = np.ceil(self.__splitFr[1] * len(randInx)) + trainFr
+
+        self.__trainSet = self.__dataSet[randInx[:trainFr]]
+        self.__valSet = self.__dataSet[randInx[trainFr:valFr]]
+        self.__testSet = self.__dataSet[randInx[valFr:]]
+
+    def __getBatch(self):
+        """
+        Create batches out of the dataset with each batch
+        containing self.batchSize data points"""
+
+        # If batch size does not divide the train set, repeat points
+        # instead of dropping them
+        ts = len(self.__trainSet)
+        bs = self.batchSize
+        # Say batch size is 21, trainSetlength is 50.
+        # 50 % 21 is 8. So to get length that can give 0-remainder,
+        # we do 50 - (50%21) + 21; implies we have numbers from range
+        # 0 to 63. These indices are used to get the elements from
+        # the train set. But note, indices 50 to 62 are invalid! So,
+        # just do modulo 50, making all the indices lie in range
+        # 0 to 50, but a few indices repeat (meaning we are reusing
+        # data points, which is exactly what we want)
+        permuteNumberRange = ts + bs - (ts % bs)
+
+        shufflInx = np.random.permutation(permuteNumberRange) % ts
+        numOfBatches = len(shufflInx)//self.batchSize
+
+        # Last columns stores the expected values, so
+        # remove them (after saving them)
+        expVals = self.__trainSet[:, -1]
+        self.__trainSet = self.__trainSet[:, :-1]
+
+        for i in range(numOfBatches - 1):
+            # Get the data points from the train set based on
+            # the indices stored in shufflInx, but only a few
+            # at a time (this 'few' is same as the batch size)
+            # and reshape them to (batchSize, noOfCols in data,
+            # 1). The -1 in reshape instructs numpy to infer the
+            # missing shape parameter
+            bs = self.batchSize
+            batch = self.__customReshape(
+                self.__trainSet[shufflInx[i * bs:(i + 1)*bs]]
+            )
+
+            # getClassifier:
+            # Assume a data point that belongs to class 1* (out
+            # of 4 possible classes, this means out network
+            # has 4 output nodes), but our network predicts
+            # that it belongs to class 3. The output is a
+            # column vector, hence to calculat the error,
+            # the 'expected' array needs to be a vector too.
+            # So, the output is something like
+            # [~=0, ~=1, ~=0, ~=0];
+            # by using the '3' from the data, we construct
+            # the expected vector as, [0, 0, 0, 1]
+            # *= Classes are assumed to be 0-indexed in this
+            # example
+            yield i, batch, self.__getClassifier(
+                expVals[shufflInx[i*bs: (i+1)*bs]]
+            )
+
+    def __customReshape(self, ndarray):
+        return ndarray.reshape(self.batchSize, -1, 1)
+
+    def __getClassifier(self, inx):
+        arr = np.zeros((self.batchSize, self.inAndOut[1], 1))
+        arr[[x for x in range(len(arr))], inx] = 1
+        return arr
+
+    def __getErrors(self, expectedVals):
+        return np.average(
+            (expectedVals - self.layers[-1]._activations),
+            axis=0
+        )
+
+    def __updatePlot(self, trainCost, valCost):
+        pass
+
     def squarecost(self, lastLayerOutput, expectedOutput):
         """ Cost is sum over ( Expected - obtained )**2 """
         return np.sum(np.power(expectedOutput - lastLayerOutput, 2))
