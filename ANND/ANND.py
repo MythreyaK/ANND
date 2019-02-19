@@ -103,14 +103,14 @@ class Network():
         # to also facilitate regularization (which uses the old
         # weights, before updates)
         dws, dbs = [0], [0]
-        # Last layer, special case, dC/dA is 2*(act - pred)
-        dca = errors
+        # Last layer, special case, dC/dA is (act - pred)
+        dcaz = - self.layers[-1]._fderiv() * errors
 
         for i in range(len(self.weights) - 1, 0, -1):
-            dcaz = self.layers[i].__fderiv() * dca
-            dws.insert(0, self.layers[i]._activations.T * dcaz)
-            dbs.insert(0, dcaz)
-            dcaz *= self.weights[i]
+            avgAct = np.average(self.layers[i-1]._activations, axis=0)
+            dws.insert(1, avgAct.T * dcaz)
+            dbs.insert(1, dcaz)
+            dcaz = self.weights[i].T @ dcaz
 
         # Call the function that updates the weights and biases
         # based on chosen update method
