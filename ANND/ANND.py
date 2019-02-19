@@ -10,6 +10,13 @@ class Network():
         self.inAndOut = inAndOut
         if costFunc is None:
             self.costFunc = self.squarecost
+        # A way to store the errors
+        # after each forward prop
+        # Store the batch indices
+        self.__splitFr = dataSplit
+        self.__trainSet = None
+        self.__valSet = None
+        self.__testSet = None
 
     def Sequential(self, *layers):
         """
