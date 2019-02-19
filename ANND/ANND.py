@@ -191,7 +191,8 @@ class Funcs():
 
         @staticmethod
         def d(nparray):
-            return Funcs.Sigmoid(nparray) * (1 - Funcs.Sigmoid(nparray))
+            p = Funcs.Sigmoid()
+            return p(nparray) * (1 - p(nparray))
 
     class Tanh():
         @staticmethod
