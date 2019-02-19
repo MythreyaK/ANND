@@ -299,8 +299,11 @@ class Layer():
             self._activations = self.activFunc(self._z)
             return self._activations
 
-        def derivative(self):
-            pass
+        def __fderiv(self):
+            """
+            Returns the derivative of the activation
+            function at the Z values"""
+            return np.average(self.activFunc.d(self._z), axis=0)
 
 
 class Funcs():
