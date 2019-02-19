@@ -77,9 +77,9 @@ class Network():
     def forwardProp(self, nparray):
         """
         Runs forward-prop on a batch.
-        If batch size is 'k' and number if input vars are 'n'
+        If batch size is 'k', number of input vars are 'n',
         the shape of nparray is (k, n, 1) where (n, 1) is
-        the column vector obtained"""
+        the column vector representing an input"""
 
         # Starting from layers[1] (layers[0] being the input layer),
         # sequentially get the activations and store it in the
@@ -299,7 +299,7 @@ class Layer():
             self._activations = self.activFunc(self._z)
             return self._activations
 
-        def __fderiv(self):
+        def _fderiv(self):
             """
             Returns the derivative of the activation
             function at the Z values"""
