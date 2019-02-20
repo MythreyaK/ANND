@@ -2,14 +2,14 @@ import numpy as np
 
 
 class Network():
-    def __init__(self, inAndOut, batch=64, learningRate=0.01, costFunc=None, dataSplit=[75, 15, 10], thresh=0.01):
+    def __init__(self, inpNodes, outNodes, dataArray, costFunc,
+                 optimizer=None, batch=64, learningRate=0.01, dataSplit=[75, 15, 10]):
         self.learningRate = learningRate
         self.batchSize = batch
         self.weights = []
         self.layers = []
-        self.inAndOut = inAndOut
-        if costFunc is None:
-            self.costFunc = self.squarecost
+        self.inAndOut = [inpNodes, outNodes]
+        self.costFunc = costFunc
         # A way to store the errors
         # after each forward prop
         # Store the batch indices
@@ -17,6 +17,11 @@ class Network():
         self.__trainSet = None
         self.__valSet = None
         self.__testSet = None
+        if type(dataArray) is np.ndarray:
+            self.__dataSet = dataArray
+        else:
+            raise ValueError("Only numpy arrays are supported. Ensure last\
+                    column of data has the classes/expected outputs")
 
     def Sequential(self, *layers):
         """
@@ -41,6 +46,7 @@ class Network():
         # Now that the layers are in place, initialize
         # the weights
         self.weights = self._initWeights()
+        self.__dataSet = self.__cleanAndNormalize(self.__dataSet)
 
     def _initWeights(self):
         """
@@ -162,7 +168,7 @@ class Network():
             )
             valErrors.append(np.sum(
                 self.__getErrors(
-                    self.__getClassifier(self.__valSet[:, -1])
+                    self.__getExpectedOutput(self.__valSet[:, -1])
                 )**2)
             )
             self.__updatePlot(trainErrors, valErrors)
@@ -234,7 +240,7 @@ class Network():
             # the expected vector as, [0, 0, 0, 1]
             # *= Classes are assumed to be 0-indexed in this
             # example
-            yield i, batch, self.__getClassifier(
+            yield i, batch, self.__getExpectedOutput(
                 expVals[shufflInx[i*bs: (i+1)*bs]]
             )
 
