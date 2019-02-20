@@ -243,7 +243,7 @@ class Network():
 
     def __getClassifier(self, inx):
         arr = np.zeros((self.batchSize, self.inAndOut[1], 1))
-        arr[[x for x in range(len(arr))], inx] = 1
+        arr[[x for x in range(len(arr))], inx.astype(np.int32)] = 1
         return arr
 
     def __getErrors(self, expectedVals):
