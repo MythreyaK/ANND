@@ -182,8 +182,8 @@ class Network():
         # pick data-points
 
         randInx = np.random.permutation(len(self.__dataSet))
-        trainFr = np.ceil(self.__splitFr[0] * len(randInx))
-        valFr = np.ceil(self.__splitFr[1] * len(randInx)) + trainFr
+        trainFr = int(np.ceil(self.__splitFr[0] * len(randInx))/100)
+        valFr = int(np.ceil(self.__splitFr[1] * len(randInx)/100) + trainFr)
 
         self.__trainSet = self.__dataSet[randInx[:trainFr]]
         self.__valSet = self.__dataSet[randInx[trainFr:valFr]]
@@ -206,7 +206,7 @@ class Network():
         # just do modulo 50, making all the indices lie in range
         # 0 to 50, but a few indices repeat (meaning we are reusing
         # data points, which is exactly what we want)
-        permuteNumberRange = ts + bs - (ts % bs)
+        permuteNumberRange = ts + bs*(ts % bs != 0) - (ts % bs)
 
         shufflInx = np.random.permutation(permuteNumberRange) % ts
         numOfBatches = len(shufflInx)//self.batchSize
