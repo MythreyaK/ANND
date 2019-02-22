@@ -164,11 +164,12 @@ class Network():
 
             # Run validation
             self.forwardProp(self.__customReshape(
-                self.__valSet[:, :-1])
+                self.__valSet[:, :-1], diffDim=len(self.__valSet))
             )
             valErrors.append(np.sum(
                 self.__getErrors(
-                    self.__getExpectedOutput(self.__valSet[:, -1])
+                    self.__getExpectedOutput(
+                        self.__valSet[:, -1], diffDim=len(self.__valSet))
                 )**2)
             )
             self.__updatePlot(trainErrors, valErrors)
@@ -244,11 +245,14 @@ class Network():
                 expVals[shufflInx[i*bs: (i+1)*bs]]
             )
 
-    def __customReshape(self, ndarray):
-        return ndarray.reshape(self.batchSize, -1, 1)
+    def __customReshape(self, ndarray, diffDim=None):
+        if diffDim is None:
+            return ndarray.reshape(self.batchSize, -1, 1)
+        else:
+            return ndarray.reshape(diffDim, -1, 1)
 
-    def __getClassifier(self, inx):
-        arr = np.zeros((self.batchSize, self.inAndOut[1], 1))
+    def __getClassifier(self, inx, shp):
+        arr = np.zeros((shp, self.inAndOut[1], 1))
         arr[[x for x in range(len(arr))], inx.astype(np.int32)] = 1
         return arr
 
