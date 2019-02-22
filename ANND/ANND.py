@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Network():
@@ -22,6 +23,7 @@ class Network():
         else:
             raise ValueError("Only numpy arrays are supported. Ensure last\
                     column of data has the classes/expected outputs")
+        self._initPlot()
 
     def Sequential(self, *layers):
         """
@@ -153,13 +155,14 @@ class Network():
             # Pass the batches, get the error, backProp.
             # Rinse and repeat. Oh and store the errors for
             # plotting purposes
+            avgEr = 0
             for batchNum, batch, expectedVector in self.__getBatch():
                 self.forwardProp(batch)
                 # Last layer's activations are stored by
                 # the forward prop function, so no need to
                 # pass as parameter
                 errors = self.__getErrors(expectedVector)
-                trainErrors.append(np.sum(errors**2))
+                avgEr += np.sum(errors**2)
                 self.backProp(errors)
 
             # Run validation
@@ -172,7 +175,9 @@ class Network():
                         self.__valSet[:, -1], diffDim=len(self.__valSet))
                 )**2)
             )
-            self.__updatePlot(trainErrors, valErrors)
+            trainErrors.append(avgEr)
+            self._updatePlot(trainErrors, valErrors)
+        self._keepPlot()
 
     def __splitData(self):
         """
@@ -262,8 +267,22 @@ class Network():
             axis=0
         )
 
-    def __updatePlot(self, trainCost, valCost):
-        pass
+    def _initPlot(self):
+        plt.show()
+        self.axes = plt.gca()
+        self._trEplt, self._valEplt = \
+            self.axes.plot([], [], 'b-', [], [], 'g-')
+
+    def _updatePlot(self, tr, val):
+        self._trEplt.set_data([t for t in range(len(tr))], tr)
+        self._valEplt.set_data([t for t in range(len(val))], val)
+        self.axes.set_xlim(0, len(tr))
+        self.axes.set_ylim(-0.25, max(tr) + max(tr)*0.10)
+        plt.pause(1e-17)
+
+    def _keepPlot(self):
+        plt.show()
+
 
     def __cleanAndNormalize(self, ndarray):
         data = np.nan_to_num(ndarray).astype(np.float64)
