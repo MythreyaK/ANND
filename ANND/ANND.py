@@ -330,7 +330,10 @@ class Funcs():
     class Sigmoid():
         @staticmethod
         def __call__(nparray):
-            return np.exp(nparray)/(1 + np.exp(nparray))
+            temp = nparray
+            temp[temp > 100] = 100
+            temp[temp < -100] = -100
+            return np.exp(temp)/(1 + np.exp(temp))
 
         @staticmethod
         def d(nparray):
