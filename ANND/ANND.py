@@ -265,6 +265,68 @@ class Network():
     def __updatePlot(self, trainCost, valCost):
         pass
 
+    def __cleanAndNormalize(self, ndarray):
+        data = np.nan_to_num(ndarray).astype(np.float64)
+        # If porblem type is classification (implies more than one output
+        # node), don't normalize the last column, as it contins the class labels
+        # If problem type is prediction, (implies only one output node),
+        # then normalize the last column to 0 to 0.9 if sigmoid,
+        # else -0.9 to 0.9
+        if self.layers[-1].noOfNodes > 1:
+            # Classification problem. Normalize all but the last
+            # column
+            tmp = self.__normalize(data[:, :-1], -0.9, 0.9)
+            lastCol = data[:, -1].reshape(len(data), 1)
+            return np.concatenate((tmp, lastCol), axis=1)
+        else:
+            # Prediction problem. Scale cols to +-0.9 if all but Sigmoid
+            # Also store the min and max of data, so that de-normalization
+            # can be done
+            self._dmin = min(ndarray[:, -1])
+            self._dmax = max(ndarray[:, -1])
+            if isinstance(self.layers[-1].activFunc, Funcs.Sigmoid):
+                tmp = self.__normalize(data[:, :-1], -0.9, 0.9)
+                lastCol = self.__normalize(
+                    data[:, -1], 0, 0.9).reshape(len(data), 1)
+                return np.concatenate((tmp, lastCol), axis=1)
+            else:
+                return self.__normalize(data, -0.9, 0.9)
+
+    def __normalize(self, ndarray, low, high):
+        colsRange = np.max(ndarray, axis=0) - np.min(ndarray, axis=0)
+        tmp = low + (high-low)*(ndarray - np.min(ndarray, axis=0))/colsRange
+        return tmp
+
+    def __deNorm(self, ndarray):
+        # Returns a value ranging from the least to the
+        # max in the dataset's last column
+        # If last output is Sigmoid, then scale
+        # (0, 1) to (min of dataset to max of dataset)
+        # [last col only]
+        dMax = self._dmax
+        dMin = self._dmin
+        print(dMax, dMin)
+        if isinstance(self.layers[-1].activFunc, Funcs.Sigmoid):
+            # Scale (0, 1) -> (dmin, dmax)
+            return dMin + ndarray*(dMax - dMin)
+        else:
+            # scale (-1, 1) -> (dmin, dmax)
+            return dMin + 0.5*(ndarray + 1) * (dMax - dMin)
+
+    def __getExpectedOutput(self, ndarray, diffDim=None):
+        # Again, if classification, call getClassifier
+        # else jsut return the array, since we've already
+        # normalized in the _cleanAndNormalize function
+        if diffDim is None:
+            shp = self.batchSize
+        else:
+            shp = diffDim
+
+        if self.layers[-1].noOfNodes == 1:
+            return ndarray.reshape(shp, 1, 1)
+        else:
+            return self.__getClassifier(ndarray, shp)
+
     def squarecost(self, lastLayerOutput, expectedOutput):
         """ Cost is sum over ( Expected - obtained )**2 """
         return np.sum(np.power(expectedOutput - lastLayerOutput, 2))
