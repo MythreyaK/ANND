@@ -213,7 +213,7 @@ class Network():
         # Last columns stores the expected values, so
         # remove them (after saving them)
         expVals = self.__trainSet[:, -1]
-        self.__trainSet = self.__trainSet[:, :-1]
+        trainSet = self.__trainSet[:, :-1]
 
         for i in range(numOfBatches - 1):
             # Get the data points from the train set based on
@@ -224,7 +224,7 @@ class Network():
             # missing shape parameter
             bs = self.batchSize
             batch = self.__customReshape(
-                self.__trainSet[shufflInx[i * bs:(i + 1)*bs]]
+                trainSet[shufflInx[i * bs:(i + 1)*bs]]
             )
 
             # getClassifier:
