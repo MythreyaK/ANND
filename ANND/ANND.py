@@ -124,8 +124,8 @@ class Network():
         for i in range(len(self.weights) - 1, 0, -1):
             loGrad = loGrad * self.layers[i]._fderiv()
             avgAct = np.average(self.layers[i-1]._activations, axis=0)
-            dws.insert(1, loGrad @ avgAct.T)
-            dbs.insert(1, loGrad)
+            dws.insert(1, -loGrad @ avgAct.T)
+            dbs.insert(1, -loGrad)
             loGrad = self.weights[i].T @ loGrad
 
         # Call the function that updates the weights and biases
