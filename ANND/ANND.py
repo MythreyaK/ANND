@@ -4,13 +4,14 @@ import matplotlib.pyplot as plt
 
 class Network():
     def __init__(self, inpNodes, outNodes, dataArray, costFunc,
-                 optimizer=None, batch=64, learningRate=0.01, dataSplit=[75, 15, 10]):
+                 optimizer=Optimizer.SGDMomentum(), batch=64, learningRate=0.01, dataSplit=[75, 15, 10]):
         self.learningRate = learningRate
         self.batchSize = batch
         self.weights = []
         self.layers = []
         self.inAndOut = [inpNodes, outNodes]
         self.costFunc = costFunc
+        self.optimz = optimizer
         # A way to store the errors
         # after each forward prop
         # Store the batch indices
@@ -133,9 +134,7 @@ class Network():
         self.__updateParameters(dws, dbs)
 
     def __updateParameters(self, delWs, delBs):
-        for i in range(len(self.weights) - 1, 0, -1):
-            self.weights[i] -= self.layers[i].lr * delWs[i]
-            self.layers[i].bias -= self.layers[i].lr * delBs[i]
+        self.optimz(self, delWs, delBs)
 
     def Train(self, noOfEpochs):
         """
@@ -441,3 +440,27 @@ class Funcs():
         @staticmethod
         def d(nparray):
             return 1 - np.power(np.tanh(nparray), 2)
+
+
+class Optimizer:
+    class SGDMomentum:
+        def __init__(self, momentum=0.9, regularizer=0.1):
+            self.m = momentum
+            self.prevDws = None
+            self.prevDbs = None
+
+        def __call__(self, netInst, dws, dbs):
+            # The instance of the network is also
+            # passed so that we have access to the
+            # weights and can consequently modify them
+            if self.prevDbs is None:
+                self.prevDws = dws
+                self.prevDbs = dbs
+            else:
+                for i in range(len(netInst.weights) - 1, 0, -1):
+                    netInst.weights[i] += (self.m * self.prevDws[i] +
+                                           (1 - self.m) * netInst.layers[i].lr * dws[i])
+                    netInst.layers[i].bias += (self.m * self.prevDbs[i] + (
+                        1 - self.m) * netInst.layers[i].lr * dbs[i])
+                self.prevDws = dws
+                self.prevDbs = dbs
