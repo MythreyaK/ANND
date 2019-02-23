@@ -163,20 +163,21 @@ class Network():
                 # the forward prop function, so no need to
                 # pass as parameter
                 errors = self.__getErrors(expectedVector)
-                avgEr += np.sum(errors**2)
+                costTr = self.__getErrors(expectedVector, retCost=True)
+                avgEr += costTr
                 self.backProp(errors)
+            trainErrors.append(avgEr/batchNum)
 
             # Run validation
+            shflInx = np.random.permutation(len(self.__valSet))
             self.forwardProp(self.__customReshape(
-                self.__valSet[:, :-1], diffDim=len(self.__valSet))
+                self.__valSet[shflInx][:, :-1], diffDim=len(self.__valSet))
             )
-            valErrors.append(np.sum(
-                self.__getErrors(
-                    self.__getExpectedOutput(
-                        self.__valSet[:, -1], diffDim=len(self.__valSet))
-                )**2)
-            )
-            trainErrors.append(avgEr)
+            valExp = self.__getExpectedOutput(
+                self.__valSet[shflInx][:, -1], diffDim=len(self.__valSet))
+            valErr = self.__getErrors(valExp, retCost=True)
+            valErrors.append(valErr)
+
             self._updatePlot(trainErrors, valErrors)
         self._keepPlot()
 
@@ -262,14 +263,16 @@ class Network():
         arr[[x for x in range(len(arr))], inx.astype(np.int32)] = 1
         return arr
 
-    def __getErrors(self, expectedVals):
-        return np.average(
-            (expectedVals - self.layers[-1]._activations),
-            axis=0
-        )
+    def __getErrors(self, expectedVals, retCost=False):
+        diffns = expectedVals - self.layers[-1]._activations
+        if not retCost:
+            return np.average(diffns, axis=0)
+        else:
+            return np.average(diffns**2, axis=0)
 
     def _initPlot(self):
         plt.show()
+        plt.grid()
         self.axes = plt.gca()
         self._trEplt, self._valEplt = \
             self.axes.plot([], [], 'b-', [], [], 'g-')
@@ -278,12 +281,17 @@ class Network():
         self._trEplt.set_data([t for t in range(len(tr))], tr)
         self._valEplt.set_data([t for t in range(len(val))], val)
         self.axes.set_xlim(0, len(tr))
-        self.axes.set_ylim(-0.25, max(tr) + max(tr)*0.10)
+        self.axes.set_ylim(min(min(tr), min(val))*0.98,
+                           max(max(val), max(tr))*1.02)
+        # To rescale the axes so that the graphs are more detailed
+        if len(tr) > 80:
+            self.axes.set_ylim(min(min(tr[80:]), min(val[80:]))*0.98,
+                           max(max(val[80:]), max(tr[80:]))*1.02)
+            self.axes.set_xlim([80, len(tr)])
         plt.pause(1e-17)
 
     def _keepPlot(self):
         plt.show()
-
 
     def __cleanAndNormalize(self, ndarray):
         data = np.nan_to_num(ndarray).astype(np.float64)
@@ -325,7 +333,6 @@ class Network():
         # [last col only]
         dMax = self._dmax
         dMin = self._dmin
-        print(dMax, dMin)
         if isinstance(self.layers[-1].activFunc, Funcs.Sigmoid):
             # Scale (0, 1) -> (dmin, dmax)
             return dMin + ndarray*(dMax - dMin)
