@@ -119,13 +119,14 @@ class Network():
         # weights, before updates)
         dws, dbs = [0], [0]
         # Last layer, special case, dC/dA is (act - pred)
-        dcaz = - self.layers[-1]._fderiv() * errors
+        loGrad = - errors
 
         for i in range(len(self.weights) - 1, 0, -1):
+            loGrad = loGrad * self.layers[i]._fderiv()
             avgAct = np.average(self.layers[i-1]._activations, axis=0)
-            dws.insert(1, avgAct.T * dcaz)
-            dbs.insert(1, dcaz)
-            dcaz = self.weights[i].T @ dcaz
+            dws.insert(1, loGrad @ avgAct.T)
+            dbs.insert(1, loGrad)
+            loGrad = self.weights[i].T @ loGrad
 
         # Call the function that updates the weights and biases
         # based on chosen update method
