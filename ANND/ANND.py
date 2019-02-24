@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 class Network():
     def __init__(self, inpNodes, outNodes, dataArray, costFunc,
-                 optimizer=Optimizer.SGDMomentum(), batch=64, learningRate=0.01, dataSplit=[75, 15, 10]):
+                 optimizer=None, batch=64, learningRate=0.01, dataSplit=[75, 15, 10], pltSkip=20):
         self.learningRate = learningRate
         self.batchSize = batch
         self.weights = []
@@ -12,6 +12,7 @@ class Network():
         self.inAndOut = [inpNodes, outNodes]
         self.costFunc = costFunc
         self.optimz = optimizer
+        self.skp = pltSkip
         # A way to store the errors
         # after each forward prop
         # Store the batch indices
@@ -125,8 +126,8 @@ class Network():
         for i in range(len(self.weights) - 1, 0, -1):
             loGrad = loGrad * self.layers[i]._fderiv()
             avgAct = np.average(self.layers[i-1]._activations, axis=0)
-            dws.insert(1, -loGrad @ avgAct.T)
-            dbs.insert(1, -loGrad)
+            dws.insert(1, loGrad @ avgAct.T)
+            dbs.insert(1, loGrad)
             loGrad = self.weights[i].T @ loGrad
 
         # Call the function that updates the weights and biases
@@ -163,9 +164,9 @@ class Network():
                 # pass as parameter
                 errors = self.__getErrors(expectedVector)
                 costTr = self.__getErrors(expectedVector, retCost=True)
-                avgEr += costTr
+                avgEr += costTr*self.batchSize
                 self.backProp(errors)
-            trainErrors.append(avgEr/batchNum)
+            trainErrors.append(avgEr/((batchNum + 1)*self.batchSize))
 
             # Run validation
             shflInx = np.random.permutation(len(self.__valSet))
@@ -222,7 +223,7 @@ class Network():
         expVals = self.__trainSet[:, -1]
         trainSet = self.__trainSet[:, :-1]
 
-        for i in range(numOfBatches - 1):
+        for i in range(numOfBatches):
             # Get the data points from the train set based on
             # the indices stored in shufflInx, but only a few
             # at a time (this 'few' is same as the batch size)
@@ -275,6 +276,8 @@ class Network():
         self.axes = plt.gca()
         self._trEplt, self._valEplt = \
             self.axes.plot([], [], 'b-', [], [], 'g-')
+        plt.legend((self._trEplt, self._valEplt),
+                   ("Training cost", "Validation cost"))
 
     def _updatePlot(self, tr, val):
         self._trEplt.set_data([t for t in range(len(tr))], tr)
@@ -283,10 +286,11 @@ class Network():
         self.axes.set_ylim(min(min(tr), min(val))*0.98,
                            max(max(val), max(tr))*1.02)
         # To rescale the axes so that the graphs are more detailed
-        if len(tr) > 80:
-            self.axes.set_ylim(min(min(tr[80:]), min(val[80:]))*0.98,
-                           max(max(val[80:]), max(tr[80:]))*1.02)
-            self.axes.set_xlim([80, len(tr)])
+        skp = self.skp
+        if len(tr) > skp:
+            self.axes.set_ylim(min(min(tr[skp:]), min(val[skp:]))*0.98,
+                               max(max(val[skp:]), max(tr[skp:]))*1.02)
+            self.axes.set_xlim([skp, len(tr)])
         plt.pause(1e-17)
 
     def _keepPlot(self):
@@ -458,9 +462,18 @@ class Optimizer:
                 self.prevDbs = dbs
             else:
                 for i in range(len(netInst.weights) - 1, 0, -1):
-                    netInst.weights[i] += (self.m * self.prevDws[i] +
+                    netInst.weights[i] -= (self.m * self.prevDws[i] +
                                            (1 - self.m) * netInst.layers[i].lr * dws[i])
-                    netInst.layers[i].bias += (self.m * self.prevDbs[i] + (
+                    netInst.layers[i].bias -= (self.m * self.prevDbs[i] + (
                         1 - self.m) * netInst.layers[i].lr * dbs[i])
                 self.prevDws = dws
                 self.prevDbs = dbs
+
+    class SGD:
+        def __init__(self):
+            pass
+
+        def __call__(self, netInst, dws, dbs):
+            for i in range(len(netInst.weights) - 1, 0, -1):
+                netInst.weights[i] -= dws[i]*netInst.layers[i].lr
+                netInst.layers[i].bias -= dbs[i]*netInst.layers[i].lr
