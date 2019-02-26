@@ -80,7 +80,7 @@ class Network():
         The L2 norm of the weights is used for regularization
         to try and keep the abs(weights) in control"""
         ret = 0
-        for i in range(self.weights):
+        for i in self.weights:
             ret += np.sum(i**2)
         return ret**0.5
 
