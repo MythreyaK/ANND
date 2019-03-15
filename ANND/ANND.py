@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from .Funcs import *
+from .Activations import *
 
 class Network():
     def __init__(self, inpNodes, outNodes, dataArray, costFunc,
@@ -317,7 +317,7 @@ class Network():
             # can be done
             self._dmin = min(ndarray[:, -1])
             self._dmax = max(ndarray[:, -1])
-            if isinstance(self.layers[-1].activFunc, Funcs.Sigmoid):
+            if isinstance(self.layers[-1].activFunc, Activations.Sigmoid):
                 tmp = self.__normalize(data[:, :-1], -0.9, 0.9)
                 lastCol = self.__normalize(
                     data[:, -1], 0, 0.9).reshape(len(data), 1)
@@ -338,7 +338,7 @@ class Network():
         # [last col only]
         dMax = self._dmax
         dMin = self._dmin
-        if isinstance(self.layers[-1].activFunc, Funcs.Sigmoid):
+        if isinstance(self.layers[-1].activFunc, Activations.Sigmoid):
             # Scale (0, 1) -> (dmin, dmax)
             return dMin + ndarray*(dMax - dMin)
         else:

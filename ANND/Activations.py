@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class Funcs():
+class Activations():
     # Class of functions that can be added to
     # layers
     # Each class is a function, that wraps its
@@ -26,7 +26,7 @@ class Funcs():
 
         @staticmethod
         def d(nparray):
-            p = Funcs.Sigmoid()
+            p = Activations.Sigmoid()
             return p(nparray) * (1 - p(nparray))
 
     class Tanh():

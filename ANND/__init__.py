@@ -1,3 +1,3 @@
 from .Optimizer import *
-from .Funcs import *
+from .Activations import *
 from .ANND import *
