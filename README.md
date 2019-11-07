@@ -63,4 +63,6 @@ except KeyboardInterrupt:
 
 ```
 
+![Preview](https://raw.githubusercontent.com/MythreyaK/ANNS/master/Assets/image.png)
+
 
